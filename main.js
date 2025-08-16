@@ -44,12 +44,12 @@ function initKeyboard() {
   keyboardEl.innerHTML = "";
   keyboardRows.forEach((rowLetters) => {
     const rowEl = document.createElement("div");
-    rowEl.className = "flex justify-center mb-2 gap-2";
+    rowEl.className = "inline-flex justify-center mb-2 space-x-2"; // Fixed for GitHub Pages
     rowLetters.forEach((letter) => {
       const key = document.createElement("button");
       key.textContent = letter;
       key.className =
-        "w-10 h-12 bg-gray-700 rounded-md shadow-md hover:bg-gray-600 transition-colors";
+        "w-10 h-12 bg-gray-700 rounded-md shadow-md hover:bg-gray-600 transition-colors flex items-center justify-center";
       rowEl.appendChild(key);
       keyElements[letter] = key;
     });
