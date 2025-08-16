@@ -10,6 +10,7 @@ const boardEl = document.getElementById("board");
 const messageEl = document.getElementById("message");
 const restartBtn = document.getElementById("restartBtn");
 const keyboardEl = document.getElementById("keyboard");
+const hiddenInput = document.getElementById("hiddenInput");
 
 // Keyboard setup
 const keyboardRows = [
@@ -44,7 +45,7 @@ function initKeyboard() {
   keyboardEl.innerHTML = "";
   keyboardRows.forEach((rowLetters) => {
     const rowEl = document.createElement("div");
-    rowEl.className = "inline-flex justify-center mb-2 space-x-2"; // Fixed for GitHub Pages
+    rowEl.className = "inline-flex justify-center mb-2 space-x-2"; 
     rowLetters.forEach((letter) => {
       const key = document.createElement("button");
       key.textContent = letter;
@@ -91,7 +92,6 @@ async function checkGuess(guess) {
     return;
   }
 
-  // Dictionary validation
   try {
     const res = await fetch(
       `https://api.dictionaryapi.dev/api/v2/entries/en/${guess}`
@@ -167,7 +167,7 @@ async function checkGuess(guess) {
   }
 }
 
-// Handle keyboard input
+// Handle desktop keyboard input
 document.addEventListener("keydown", async (e) => {
   if (!targetWord) return;
 
@@ -178,11 +178,9 @@ document.addEventListener("keydown", async (e) => {
     }
   } else if (e.key === "Enter") {
     if (currentCol === WORD_LENGTH) {
-      const guess = board[currentRow]
-        .map((c) => c.textContent)
-        .join("")
-        .toLowerCase();
+      const guess = board[currentRow].map(c => c.textContent).join("").toLowerCase();
       await checkGuess(guess);
+      hiddenInput.value = "";
     }
   } else if (/^[a-zA-Z]$/.test(e.key)) {
     if (currentCol < WORD_LENGTH) {
@@ -192,10 +190,28 @@ document.addEventListener("keydown", async (e) => {
   }
 });
 
-// Restart (quick reload)
-restartBtn.addEventListener("click", () => {
-  location.reload();
+// Handle mobile typing
+document.addEventListener("touchstart", () => hiddenInput.focus());
+
+hiddenInput.addEventListener("input", async (e) => {
+  const value = e.target.value.toUpperCase();
+  for (let i = 0; i < WORD_LENGTH; i++) {
+    board[currentRow][i].textContent = value[i] || "";
+  }
+  currentCol = value.length;
+  if (currentCol === WORD_LENGTH) {
+    await checkGuess(value.toLowerCase());
+    hiddenInput.value = "";
+    hiddenInput.focus();
+  }
 });
+
+// Keep input focused
+boardEl.addEventListener("click", () => hiddenInput.focus());
+keyboardEl.addEventListener("click", () => hiddenInput.focus());
+
+// Restart
+restartBtn.addEventListener("click", () => location.reload());
 
 // Initialize
 (async function () {
