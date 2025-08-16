@@ -34,16 +34,15 @@
   <div id="keyboard" class="flex flex-col items-center mt-2"></div>
 
   <!-- Message -->
-  <div id="message" class="text-lg sm:text-xl mt-10 mb-6 text-center opacity-0 transition-opacity duration-500"></div>
+  <div id="message" class="text-lg sm:text-xl mt-2 sm:mt-6 mb-2 sm:mb-4 text-center opacity-0 transition-opacity duration-500"></div>
 
   <!-- Play Again Button -->
-  <button id="restartBtn" class="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-transform duration-200 mt-4">
+  <button id="restartBtn" class="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-transform duration-200 mt-2 sm:mt-4">
     Play Again
   </button>
 
-  <!-- Offscreen input for mobile keyboard -->
-  <input type="text" id="hiddenInput" maxlength="5" autocomplete="off"
-         style="position: absolute; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 1;" />
+  <!-- Hidden input for mobile typing -->
+  <input type="text" id="hiddenInput" maxlength="5" autocomplete="off" class="absolute opacity-0 pointer-events-none" />
 
   <!-- JS -->
   <script src="main.js"></script>
