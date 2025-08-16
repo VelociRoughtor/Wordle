@@ -11,11 +11,15 @@ const messageEl = document.getElementById("message");
 const restartBtn = document.getElementById("restartBtn");
 const keyboardEl = document.getElementById("keyboard");
 
-// QWERTY keys
-const keys = "QWERTYUIOPASDFGHJKLZXCVBNM".split("");
-const keyElements = {}; // references for coloring
+// Keyboard setup
+const keyboardRows = [
+  "QWERTYUIOP".split(""),
+  "ASDFGHJKL".split(""),
+  "ZXCVBNM".split("")
+];
+const keyElements = {};
 
-// Initialize empty board
+// Initialize board
 function initBoard() {
   boardEl.innerHTML = "";
   board = [];
@@ -38,17 +42,22 @@ function initBoard() {
 // Initialize keyboard
 function initKeyboard() {
   keyboardEl.innerHTML = "";
-  keys.forEach((letter) => {
-    const key = document.createElement("button");
-    key.textContent = letter;
-    key.className =
-      "w-10 h-12 bg-gray-700 rounded-md shadow-md hover:bg-gray-600 transition-colors";
-    keyboardEl.appendChild(key);
-    keyElements[letter] = key;
+  keyboardRows.forEach((rowLetters) => {
+    const rowEl = document.createElement("div");
+    rowEl.className = "flex justify-center mb-2 gap-2";
+    rowLetters.forEach((letter) => {
+      const key = document.createElement("button");
+      key.textContent = letter;
+      key.className =
+        "w-10 h-12 bg-gray-700 rounded-md shadow-md hover:bg-gray-600 transition-colors";
+      rowEl.appendChild(key);
+      keyElements[letter] = key;
+    });
+    keyboardEl.appendChild(rowEl);
   });
 }
 
-// Show message, optionally auto-hide
+// Show messages
 function showMessage(msg, autoHide = true) {
   messageEl.textContent = msg;
   messageEl.classList.add("opacity-100");
@@ -60,7 +69,7 @@ function showMessage(msg, autoHide = true) {
   }
 }
 
-// Fetch random 5-letter word from API
+// Fetch random 5-letter word
 async function fetchTargetWord() {
   try {
     const res = await fetch(
@@ -82,7 +91,7 @@ async function checkGuess(guess) {
     return;
   }
 
-  // Dictionary check
+  // Dictionary validation
   try {
     const res = await fetch(
       `https://api.dictionaryapi.dev/api/v2/entries/en/${guess}`
@@ -101,7 +110,7 @@ async function checkGuess(guess) {
   const guessArr = guess.split("");
   const color = Array(WORD_LENGTH).fill("bg-gray-500");
 
-  // First pass: green
+  // Green pass
   for (let i = 0; i < WORD_LENGTH; i++) {
     if (guessArr[i] === targetArr[i]) {
       color[i] = "bg-green-500";
@@ -110,7 +119,7 @@ async function checkGuess(guess) {
     }
   }
 
-  // Second pass: yellow
+  // Yellow pass
   for (let i = 0; i < WORD_LENGTH; i++) {
     if (guessArr[i] && targetArr.includes(guessArr[i])) {
       color[i] = "bg-yellow-500";
@@ -118,7 +127,7 @@ async function checkGuess(guess) {
     }
   }
 
-  // Apply colors and flip animation
+  // Apply colors + flip animation
   for (let i = 0; i < WORD_LENGTH; i++) {
     const cell = board[currentRow][i];
     cell.classList.add("flip");
@@ -145,7 +154,7 @@ async function checkGuess(guess) {
     }
   }
 
-  // Win / loss messages
+  // Win / loss
   if (guess === targetWord) {
     showMessage("🎉 Yay! You guessed it right!", false);
     return;
@@ -183,12 +192,12 @@ document.addEventListener("keydown", async (e) => {
   }
 });
 
-// Restart game (reload page for simplicity)
+// Restart (quick reload)
 restartBtn.addEventListener("click", () => {
   location.reload();
 });
 
-// Initialize game
+// Initialize
 (async function () {
   initBoard();
   initKeyboard();
