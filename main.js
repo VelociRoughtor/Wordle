@@ -45,7 +45,7 @@ function initKeyboard() {
   keyboardEl.innerHTML = "";
   keyboardRows.forEach((rowLetters) => {
     const rowEl = document.createElement("div");
-    rowEl.className = "inline-flex justify-center mb-2 space-x-2"; 
+    rowEl.className = "inline-flex justify-center mb-2 space-x-2";
     rowLetters.forEach((letter) => {
       const key = document.createElement("button");
       key.textContent = letter;

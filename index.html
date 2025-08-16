@@ -41,8 +41,9 @@
     Play Again
   </button>
 
-  <!-- Hidden input for mobile typing -->
-  <input type="text" id="hiddenInput" maxlength="5" autocomplete="off" class="absolute opacity-0 pointer-events-none" />
+  <!-- Offscreen input for mobile keyboard -->
+  <input type="text" id="hiddenInput" maxlength="5" autocomplete="off"
+         style="position: absolute; top: -100px; left: -100px; width: 1px; height: 1px; opacity: 1;" />
 
   <!-- JS -->
   <script src="main.js"></script>
