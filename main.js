@@ -5,9 +5,15 @@ let currentCol = 0;
 let board = [];
 let targetWord = "";
 
+// DOM elements
 const boardEl = document.getElementById("board");
 const messageEl = document.getElementById("message");
 const restartBtn = document.getElementById("restartBtn");
+const keyboardEl = document.getElementById("keyboard");
+
+// QWERTY keys
+const keys = "QWERTYUIOPASDFGHJKLZXCVBNM".split("");
+const keyElements = {}; // references for coloring
 
 // Initialize empty board
 function initBoard() {
@@ -27,6 +33,19 @@ function initBoard() {
     boardEl.appendChild(rowEl);
     board.push(row);
   }
+}
+
+// Initialize keyboard
+function initKeyboard() {
+  keyboardEl.innerHTML = "";
+  keys.forEach((letter) => {
+    const key = document.createElement("button");
+    key.textContent = letter;
+    key.className =
+      "w-10 h-12 bg-gray-700 rounded-md shadow-md hover:bg-gray-600 transition-colors";
+    keyboardEl.appendChild(key);
+    keyElements[letter] = key;
+  });
 }
 
 // Show message, optionally auto-hide
@@ -56,13 +75,14 @@ async function fetchTargetWord() {
   }
 }
 
-// Check guess with dictionary API
+// Check guess
 async function checkGuess(guess) {
   if (guess.length !== WORD_LENGTH) {
     showMessage("Invalid word!");
     return;
   }
 
+  // Dictionary check
   try {
     const res = await fetch(
       `https://api.dictionaryapi.dev/api/v2/entries/en/${guess}`
@@ -81,7 +101,7 @@ async function checkGuess(guess) {
   const guessArr = guess.split("");
   const color = Array(WORD_LENGTH).fill("bg-gray-500");
 
-  // First pass for green
+  // First pass: green
   for (let i = 0; i < WORD_LENGTH; i++) {
     if (guessArr[i] === targetArr[i]) {
       color[i] = "bg-green-500";
@@ -90,7 +110,7 @@ async function checkGuess(guess) {
     }
   }
 
-  // Second pass for yellow
+  // Second pass: yellow
   for (let i = 0; i < WORD_LENGTH; i++) {
     if (guessArr[i] && targetArr.includes(guessArr[i])) {
       color[i] = "bg-yellow-500";
@@ -98,14 +118,31 @@ async function checkGuess(guess) {
     }
   }
 
-  // Apply colors safely with flip animation
+  // Apply colors and flip animation
   for (let i = 0; i < WORD_LENGTH; i++) {
     const cell = board[currentRow][i];
     cell.classList.add("flip");
     setTimeout(() => {
       cell.classList.add(color[i]);
       cell.classList.remove("flip");
-    }, i * 200); // stagger tiles
+    }, i * 200);
+  }
+
+  // Update virtual keyboard
+  for (let i = 0; i < WORD_LENGTH; i++) {
+    const letter = guess[i].toUpperCase();
+    if (letter && keyElements[letter]) {
+      const key = keyElements[letter];
+      if (color[i] === "bg-green-500") {
+        key.classList.remove("bg-yellow-500", "bg-gray-700");
+        key.classList.add("bg-green-500");
+      } else if (color[i] === "bg-yellow-500" && !key.classList.contains("bg-green-500")) {
+        key.classList.remove("bg-gray-700");
+        key.classList.add("bg-yellow-500");
+      } else if (color[i] === "bg-gray-500" && !key.classList.contains("bg-green-500") && !key.classList.contains("bg-yellow-500")) {
+        key.classList.add("bg-gray-500");
+      }
+    }
   }
 
   // Win / loss messages
@@ -146,7 +183,7 @@ document.addEventListener("keydown", async (e) => {
   }
 });
 
-// Restart game
+// Restart game (reload page for simplicity)
 restartBtn.addEventListener("click", () => {
   location.reload();
 });
@@ -154,5 +191,6 @@ restartBtn.addEventListener("click", () => {
 // Initialize game
 (async function () {
   initBoard();
+  initKeyboard();
   await fetchTargetWord();
 })();
