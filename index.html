@@ -7,34 +7,42 @@
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Flip animation for Wordle effect */
+    /* Flip animation */
     @keyframes flip {
       0% { transform: rotateX(0deg); }
       50% { transform: rotateX(90deg); }
       100% { transform: rotateX(0deg); }
     }
-    .flip {
-      animation: flip 0.5s ease;
+    .flip { animation: flip 0.5s ease; }
+
+    /* Mobile responsive scaling */
+    @media (max-width: 480px) {
+      #board > div > div { width: 12vw; height: 12vw; font-size: 1.5rem; }
+      #keyboard button { width: 8vw; height: 8vw; font-size: 1rem; }
+      h1 { font-size: 2rem; }
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-900 via-green-900 to-purple-800 text-white flex flex-col items-center justify-center min-h-screen p-4">
+<body class="bg-gradient-to-br from-blue-900 via-green-900 to-purple-800 text-white flex flex-col items-center justify-center min-h-screen p-2">
 
-  <h1 class="text-4xl font-extrabold mb-8 tracking-wide">Wordle</h1>
+  <h1 class="text-3xl sm:text-4xl font-extrabold mb-4 sm:mb-8 tracking-wide">Wordle</h1>
 
   <!-- Game Board -->
-  <div id="board" class="grid grid-rows-6 mb-6 shadow-lg p-4 rounded-xl bg-gray-900/100"></div>
+  <div id="board" class="grid grid-rows-6 mb-2 sm:mb-6 shadow-lg p-2 pb-0 sm:p-4 rounded-xl bg-gray-900/100"></div>
 
   <!-- Keyboard -->
-  <div id="keyboard" class="flex flex-col items-center mt-4"></div>
+  <div id="keyboard" class="flex flex-col items-center mt-2"></div>
 
   <!-- Message -->
-  <div id="message" class="text-xl mt-10 mb-6 text-center opacity-0 transition-opacity duration-500"></div>
+  <div id="message" class="text-lg sm:text-xl mt-2 sm:mt-6 mb-2 sm:mb-4 text-center opacity-0 transition-opacity duration-500"></div>
 
   <!-- Play Again Button -->
-  <button id="restartBtn" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-transform duration-200 mt-4">
+  <button id="restartBtn" class="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-transform duration-200 mt-2 sm:mt-4">
     Play Again
   </button>
+
+  <!-- Hidden input for mobile typing -->
+  <input type="text" id="hiddenInput" maxlength="5" autocomplete="off" class="absolute opacity-0 pointer-events-none" />
 
   <!-- JS -->
   <script src="main.js"></script>
