@@ -200,9 +200,8 @@ if (!isMobile) {
 
 // 📱 Mobile input
 if (isMobile) {
-  document.body.addEventListener("click", () => {
-    hiddenInput.focus();
-  });
+  // Tap the board to bring up keyboard
+  boardEl.addEventListener("click", () => hiddenInput.focus());
 
   hiddenInput.addEventListener("input", (e) => {
     const value = e.target.value;

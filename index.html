@@ -21,6 +21,17 @@
       #keyboard button { width: 8vw; height: 8vw; font-size: 1rem; }
       h1 { font-size: 2rem; }
     }
+
+    /* Hidden input fix */
+    #hiddenInput {
+      position: absolute;
+      opacity: 0;          /* invisible */
+      pointer-events: none; /* avoid accidental taps */
+      width: 1px;
+      height: 1px;
+      top: 0;
+      left: 0;
+    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-900 via-green-900 to-purple-800 text-white flex flex-col items-center justify-center min-h-screen p-2">
@@ -49,7 +60,7 @@
     autocomplete="off"
     autocapitalize="none"
     spellcheck="false"
-    style="position:absolute; left:-9999px;" 
+    inputmode="text"
   />
 
   <!-- JS -->
