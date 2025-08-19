@@ -10,6 +10,10 @@ const boardEl = document.getElementById("board");
 const messageEl = document.getElementById("message");
 const restartBtn = document.getElementById("restartBtn");
 const keyboardEl = document.getElementById("keyboard");
+const hiddenInput = document.getElementById("hiddenInput");
+
+// Detect if mobile
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 // Keyboard setup
 const keyboardRows = [
@@ -44,7 +48,7 @@ function initKeyboard() {
   keyboardEl.innerHTML = "";
   keyboardRows.forEach((rowLetters) => {
     const rowEl = document.createElement("div");
-    rowEl.className = "inline-flex justify-center mb-2 space-x-2"; // Fixed for GitHub Pages
+    rowEl.className = "inline-flex justify-center mb-2 space-x-2";
     rowLetters.forEach((letter) => {
       const key = document.createElement("button");
       key.textContent = letter;
@@ -167,32 +171,65 @@ async function checkGuess(guess) {
   }
 }
 
-// Handle keyboard input
-document.addEventListener("keydown", async (e) => {
-  if (!targetWord) return;
+// 🖥️ Desktop input
+if (!isMobile) {
+  document.addEventListener("keydown", async (e) => {
+    if (!targetWord) return;
 
-  if (e.key === "Backspace") {
-    if (currentCol > 0) {
+    if (e.key === "Backspace") {
+      if (currentCol > 0) {
+        currentCol--;
+        board[currentRow][currentCol].textContent = "";
+      }
+    } else if (e.key === "Enter") {
+      if (currentCol === WORD_LENGTH) {
+        const guess = board[currentRow]
+          .map((c) => c.textContent)
+          .join("")
+          .toLowerCase();
+        await checkGuess(guess);
+      }
+    } else if (/^[a-zA-Z]$/.test(e.key)) {
+      if (currentCol < WORD_LENGTH) {
+        board[currentRow][currentCol].textContent = e.key.toUpperCase();
+        currentCol++;
+      }
+    }
+  });
+}
+
+// 📱 Mobile input
+if (isMobile) {
+  document.body.addEventListener("click", () => {
+    hiddenInput.focus();
+  });
+
+  hiddenInput.addEventListener("input", (e) => {
+    const value = e.target.value;
+    const char = value.slice(-1); // last typed character
+
+    if (/^[a-zA-Z]$/.test(char) && currentCol < WORD_LENGTH) {
+      board[currentRow][currentCol].textContent = char.toUpperCase();
+      currentCol++;
+    }
+    e.target.value = ""; // clear
+  });
+
+  hiddenInput.addEventListener("keydown", async (e) => {
+    if (e.key === "Backspace" && currentCol > 0) {
       currentCol--;
       board[currentRow][currentCol].textContent = "";
-    }
-  } else if (e.key === "Enter") {
-    if (currentCol === WORD_LENGTH) {
+    } else if (e.key === "Enter" && currentCol === WORD_LENGTH) {
       const guess = board[currentRow]
         .map((c) => c.textContent)
         .join("")
         .toLowerCase();
       await checkGuess(guess);
     }
-  } else if (/^[a-zA-Z]$/.test(e.key)) {
-    if (currentCol < WORD_LENGTH) {
-      board[currentRow][currentCol].textContent = e.key.toUpperCase();
-      currentCol++;
-    }
-  }
-});
+  });
+}
 
-// Restart (quick reload)
+// Restart
 restartBtn.addEventListener("click", () => {
   location.reload();
 });
@@ -202,4 +239,5 @@ restartBtn.addEventListener("click", () => {
   initBoard();
   initKeyboard();
   await fetchTargetWord();
+  if (isMobile) hiddenInput.focus(); // auto-focus for mobile
 })();

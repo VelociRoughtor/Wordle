@@ -42,7 +42,15 @@
   </button>
 
   <!-- Hidden input for mobile typing -->
-  <input type="text" id="hiddenInput" maxlength="5" autocomplete="off" class="absolute opacity-0 pointer-events-none" />
+  <input 
+    type="text" 
+    id="hiddenInput" 
+    maxlength="5" 
+    autocomplete="off"
+    autocapitalize="none"
+    spellcheck="false"
+    style="position:absolute; left:-9999px;" 
+  />
 
   <!-- JS -->
   <script src="main.js"></script>
