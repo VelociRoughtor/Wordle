@@ -18,15 +18,24 @@
     /* Mobile responsive scaling */
     @media (max-width: 480px) {
       #board > div > div { width: 12vw; height: 12vw; font-size: 1.5rem; }
-      #keyboard button { width: 8vw; height: 8vw; font-size: 1rem; }
+      #keyboard button { width: 8vw; height: 8vw; font-size: 1rem; padding-left: 1rem; padding-right: 1rem; }
+
+      /* Extra padding for Enter & Backspace */
+      #keyboard button[data-key="Enter"],
+      #keyboard button[data-key="Backspace"] {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+        height: 8vw;
+      }
+
       h1 { font-size: 2rem; }
     }
 
     /* Hidden input fix */
     #hiddenInput {
       position: absolute;
-      opacity: 0;          /* invisible */
-      pointer-events: none; /* avoid accidental taps */
+      opacity: 0;
+      pointer-events: none;
       width: 1px;
       height: 1px;
       top: 0;
@@ -34,9 +43,9 @@
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-900 via-green-900 to-purple-800 text-white flex flex-col items-center justify-center min-h-screen p-2">
+<body class="bg-gradient-to-br from-blue-900 via-green-900 to-purple-800 text-white flex flex-col items-center justify-start min-h-screen pt-16 sm:pt-16 p-2">
 
-  <h1 class="text-3xl sm:text-4xl font-extrabold mb-4 sm:mb-8 tracking-wide">Wordle</h1>
+  <h1 class="text-3xl sm:text-4xl font-extrabold mb-6 sm:mb-8 tracking-wide">Wordle</h1>
 
   <!-- Game Board -->
   <div id="board" class="grid grid-rows-6 mb-2 sm:mb-6 shadow-lg p-2 pb-0 sm:p-4 rounded-xl bg-gray-900/100"></div>

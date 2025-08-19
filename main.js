@@ -46,23 +46,50 @@ function initBoard() {
 // Initialize keyboard
 function initKeyboard() {
   keyboardEl.innerHTML = "";
-  keyboardRows.forEach((rowLetters) => {
+  keyboardRows.forEach((rowLetters, rowIndex) => {
     const rowEl = document.createElement("div");
-    rowEl.className = "inline-flex justify-center mb-2 space-x-2";
+    rowEl.className = rowIndex < 2 ? "flex justify-center mb-2 space-x-2" : "flex items-center mb-2 space-x-2";
+
     rowLetters.forEach((letter) => {
       const key = document.createElement("button");
       key.textContent = letter === "Backspace" ? "⌫" : letter;
       key.dataset.key = letter;
-      key.className =
-        "w-10 h-12 bg-gray-700 rounded-md shadow-md hover:bg-gray-600 transition-colors flex items-center justify-center";
+
+      if (letter === "Enter") {
+        key.className =
+          "w-auto px-5 h-12 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition-colors flex items-center justify-center";
+      } else if (letter === "Backspace") {
+        key.className =
+          "w-auto px-5 h-12 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition-colors flex items-center justify-center";
+      } else {
+        key.className =
+          "w-10 h-12 bg-gray-700 rounded-md shadow-md hover:bg-gray-600 transition-colors flex items-center justify-center";
+      }
+
       rowEl.appendChild(key);
       keyElements[letter] = key;
 
-      // Virtual keyboard click
       key.addEventListener("click", async () => {
         handleInput(letter);
       });
     });
+
+    // Move Enter & Backspace to the right on last row
+    if (rowIndex === 2) {
+      const lettersOnly = rowEl.querySelectorAll("button:not([data-key='Enter']):not([data-key='Backspace'])");
+      const enterKey = rowEl.querySelector("button[data-key='Enter']");
+      const backKey = rowEl.querySelector("button[data-key='Backspace']");
+      rowEl.innerHTML = "";
+      lettersOnly.forEach(btn => rowEl.appendChild(btn));
+
+      const spacer = document.createElement("div");
+      spacer.className = "flex-1"; // pushes Enter & Backspace right
+      rowEl.appendChild(spacer);
+
+      rowEl.appendChild(enterKey);
+      rowEl.appendChild(backKey);
+    }
+
     keyboardEl.appendChild(rowEl);
   });
 }
@@ -71,20 +98,15 @@ function initKeyboard() {
 function showMessage(msg, autoHide = true) {
   messageEl.textContent = msg;
   messageEl.classList.add("opacity-100");
-
   if (autoHide && msg) {
-    setTimeout(() => {
-      messageEl.classList.remove("opacity-100");
-    }, 2000);
+    setTimeout(() => { messageEl.classList.remove("opacity-100"); }, 2000);
   }
 }
 
 // Fetch random 5-letter word
 async function fetchTargetWord() {
   try {
-    const res = await fetch(
-      "https://random-word-api.vercel.app/api?words=1&length=5"
-    );
+    const res = await fetch("https://random-word-api.vercel.app/api?words=1&length=5");
     const data = await res.json();
     targetWord = data[0].toLowerCase();
     console.log("Target word:", targetWord);
@@ -94,10 +116,9 @@ async function fetchTargetWord() {
   }
 }
 
-// Handle input (shared between desktop & mobile virtual keyboard)
+// Handle input
 async function handleInput(key) {
   if (!targetWord) return;
-
   if (key === "Backspace") {
     if (currentCol > 0) {
       currentCol--;
@@ -105,10 +126,7 @@ async function handleInput(key) {
     }
   } else if (key === "Enter") {
     if (currentCol === WORD_LENGTH) {
-      const guess = board[currentRow]
-        .map((c) => c.textContent)
-        .join("")
-        .toLowerCase();
+      const guess = board[currentRow].map(c => c.textContent).join("").toLowerCase();
       await checkGuess(guess);
     }
   } else if (/^[a-zA-Z]$/.test(key)) {
@@ -125,116 +143,62 @@ async function checkGuess(guess) {
     showMessage("Invalid word!");
     return;
   }
-
-  // Dictionary validation
   try {
-    const res = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/en/${guess}`
-    );
-    if (res.status === 404) {
-      showMessage("Not a valid word!");
-      return;
-    }
-  } catch (err) {
-    console.error(err);
-    showMessage("Error validating word!");
-    return;
-  }
+    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${guess}`);
+    if (res.status === 404) { showMessage("Not a valid word!"); return; }
+  } catch { showMessage("Error validating word!"); return; }
 
   const targetArr = targetWord.split("");
   const guessArr = guess.split("");
   const color = Array(WORD_LENGTH).fill("bg-gray-500");
 
-  // Green pass
   for (let i = 0; i < WORD_LENGTH; i++) {
-    if (guessArr[i] === targetArr[i]) {
-      color[i] = "bg-green-500";
-      targetArr[i] = null;
-      guessArr[i] = null;
-    }
+    if (guessArr[i] === targetArr[i]) { color[i] = "bg-green-500"; targetArr[i] = null; guessArr[i] = null; }
   }
-
-  // Yellow pass
   for (let i = 0; i < WORD_LENGTH; i++) {
-    if (guessArr[i] && targetArr.includes(guessArr[i])) {
-      color[i] = "bg-yellow-500";
-      targetArr[targetArr.indexOf(guessArr[i])] = null;
-    }
+    if (guessArr[i] && targetArr.includes(guessArr[i])) { color[i] = "bg-yellow-500"; targetArr[targetArr.indexOf(guessArr[i])] = null; }
   }
-
-  // Apply colors + flip animation
   for (let i = 0; i < WORD_LENGTH; i++) {
     const cell = board[currentRow][i];
     cell.classList.add("flip");
-    setTimeout(() => {
-      cell.classList.add(color[i]);
-      cell.classList.remove("flip");
-    }, i * 200);
+    setTimeout(() => { cell.classList.add(color[i]); cell.classList.remove("flip"); }, i*200);
   }
 
-  // Update virtual keyboard
   for (let i = 0; i < WORD_LENGTH; i++) {
     const letter = guess[i].toUpperCase();
     if (letter && keyElements[letter]) {
       const key = keyElements[letter];
-      if (color[i] === "bg-green-500") {
-        key.classList.remove("bg-yellow-500", "bg-gray-700");
-        key.classList.add("bg-green-500");
-      } else if (color[i] === "bg-yellow-500" && !key.classList.contains("bg-green-500")) {
-        key.classList.remove("bg-gray-700");
-        key.classList.add("bg-yellow-500");
-      } else if (color[i] === "bg-gray-500" && !key.classList.contains("bg-green-500") && !key.classList.contains("bg-yellow-500")) {
-        key.classList.add("bg-gray-500");
-      }
+      if (color[i] === "bg-green-500") { key.classList.remove("bg-yellow-500","bg-gray-700"); key.classList.add("bg-green-500"); }
+      else if (color[i] === "bg-yellow-500" && !key.classList.contains("bg-green-500")) { key.classList.remove("bg-gray-700"); key.classList.add("bg-yellow-500"); }
+      else if (color[i] === "bg-gray-500" && !key.classList.contains("bg-green-500") && !key.classList.contains("bg-yellow-500")) { key.classList.add("bg-gray-500"); }
     }
   }
 
-  // Win / loss
-  if (guess === targetWord) {
-    showMessage("🎉 Yay! You guessed it right!", false);
-    return;
-  } else if (currentRow === BOARD_ROWS - 1) {
-    showMessage(`😢 Try again! Word was: ${targetWord.toUpperCase()}`, false);
-    return;
-  } else {
-    currentRow++;
-    currentCol = 0;
-  }
+  if (guess === targetWord) { showMessage("🎉 Yay! You guessed it right!", false); return; }
+  else if (currentRow === BOARD_ROWS - 1) { showMessage(`😢 Try again! Word was: ${targetWord.toUpperCase()}`, false); return; }
+  else { currentRow++; currentCol = 0; }
 }
 
-// 🖥️ Desktop input
+// Desktop input
 if (!isMobile) {
-  document.addEventListener("keydown", async (e) => {
-    await handleInput(e.key);
-  });
+  document.addEventListener("keydown", async e => { await handleInput(e.key); });
 }
 
-// 📱 Mobile input (optional: hidden input for people who want to type)
+// Mobile input
 if (isMobile) {
-  hiddenInput.addEventListener("input", (e) => {
+  hiddenInput.addEventListener("input", e => {
     const value = e.target.value;
-    const char = value.slice(-1); // last typed character
-    if (/^[a-zA-Z]$/.test(char)) {
-      handleInput(char);
-    }
-    e.target.value = ""; // clear
+    const char = value.slice(-1);
+    if (/^[a-zA-Z]$/.test(char)) handleInput(char);
+    e.target.value = "";
   });
-  hiddenInput.addEventListener("keydown", async (e) => {
-    if (e.key === "Backspace" || e.key === "Enter") {
-      await handleInput(e.key);
-    }
+  hiddenInput.addEventListener("keydown", async e => {
+    if (e.key === "Backspace" || e.key === "Enter") await handleInput(e.key);
   });
 }
 
 // Restart
-restartBtn.addEventListener("click", () => {
-  location.reload();
-});
+restartBtn.addEventListener("click", () => location.reload());
 
 // Initialize
-(async function () {
-  initBoard();
-  initKeyboard();
-  await fetchTargetWord();
-  // ❌ No auto-focus on mobile (keyboard stays hidden unless user taps input)
-})();
+(async function() { initBoard(); initKeyboard(); await fetchTargetWord(); })();
