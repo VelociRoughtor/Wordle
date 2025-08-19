@@ -19,7 +19,7 @@ const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 const keyboardRows = [
   "QWERTYUIOP".split(""),
   "ASDFGHJKL".split(""),
-  "ZXCVBNM".split("")
+  ["Enter", ..."ZXCVBNM".split(""), "Backspace"]
 ];
 const keyElements = {};
 
@@ -51,11 +51,17 @@ function initKeyboard() {
     rowEl.className = "inline-flex justify-center mb-2 space-x-2";
     rowLetters.forEach((letter) => {
       const key = document.createElement("button");
-      key.textContent = letter;
+      key.textContent = letter === "Backspace" ? "⌫" : letter;
+      key.dataset.key = letter;
       key.className =
         "w-10 h-12 bg-gray-700 rounded-md shadow-md hover:bg-gray-600 transition-colors flex items-center justify-center";
       rowEl.appendChild(key);
       keyElements[letter] = key;
+
+      // Virtual keyboard click
+      key.addEventListener("click", async () => {
+        handleInput(letter);
+      });
     });
     keyboardEl.appendChild(rowEl);
   });
@@ -85,6 +91,31 @@ async function fetchTargetWord() {
   } catch (err) {
     console.error("Failed to fetch word", err);
     showMessage("Failed to fetch word. Refresh to try again.", false);
+  }
+}
+
+// Handle input (shared between desktop & mobile virtual keyboard)
+async function handleInput(key) {
+  if (!targetWord) return;
+
+  if (key === "Backspace") {
+    if (currentCol > 0) {
+      currentCol--;
+      board[currentRow][currentCol].textContent = "";
+    }
+  } else if (key === "Enter") {
+    if (currentCol === WORD_LENGTH) {
+      const guess = board[currentRow]
+        .map((c) => c.textContent)
+        .join("")
+        .toLowerCase();
+      await checkGuess(guess);
+    }
+  } else if (/^[a-zA-Z]$/.test(key)) {
+    if (currentCol < WORD_LENGTH) {
+      board[currentRow][currentCol].textContent = key.toUpperCase();
+      currentCol++;
+    }
   }
 }
 
@@ -174,56 +205,23 @@ async function checkGuess(guess) {
 // 🖥️ Desktop input
 if (!isMobile) {
   document.addEventListener("keydown", async (e) => {
-    if (!targetWord) return;
-
-    if (e.key === "Backspace") {
-      if (currentCol > 0) {
-        currentCol--;
-        board[currentRow][currentCol].textContent = "";
-      }
-    } else if (e.key === "Enter") {
-      if (currentCol === WORD_LENGTH) {
-        const guess = board[currentRow]
-          .map((c) => c.textContent)
-          .join("")
-          .toLowerCase();
-        await checkGuess(guess);
-      }
-    } else if (/^[a-zA-Z]$/.test(e.key)) {
-      if (currentCol < WORD_LENGTH) {
-        board[currentRow][currentCol].textContent = e.key.toUpperCase();
-        currentCol++;
-      }
-    }
+    await handleInput(e.key);
   });
 }
 
-// 📱 Mobile input
+// 📱 Mobile input (optional: hidden input for people who want to type)
 if (isMobile) {
-  // Tap the board to bring up keyboard
-  boardEl.addEventListener("click", () => hiddenInput.focus());
-
   hiddenInput.addEventListener("input", (e) => {
     const value = e.target.value;
     const char = value.slice(-1); // last typed character
-
-    if (/^[a-zA-Z]$/.test(char) && currentCol < WORD_LENGTH) {
-      board[currentRow][currentCol].textContent = char.toUpperCase();
-      currentCol++;
+    if (/^[a-zA-Z]$/.test(char)) {
+      handleInput(char);
     }
     e.target.value = ""; // clear
   });
-
   hiddenInput.addEventListener("keydown", async (e) => {
-    if (e.key === "Backspace" && currentCol > 0) {
-      currentCol--;
-      board[currentRow][currentCol].textContent = "";
-    } else if (e.key === "Enter" && currentCol === WORD_LENGTH) {
-      const guess = board[currentRow]
-        .map((c) => c.textContent)
-        .join("")
-        .toLowerCase();
-      await checkGuess(guess);
+    if (e.key === "Backspace" || e.key === "Enter") {
+      await handleInput(e.key);
     }
   });
 }
@@ -238,5 +236,5 @@ restartBtn.addEventListener("click", () => {
   initBoard();
   initKeyboard();
   await fetchTargetWord();
-  if (isMobile) hiddenInput.focus(); // auto-focus for mobile
+  // ❌ No auto-focus on mobile (keyboard stays hidden unless user taps input)
 })();
